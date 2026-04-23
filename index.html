@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연금저축펀드 시뮬레이터 v5 (월복리 적립 적용)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2.5fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .summary-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 400px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th,
+        td {
+            padding: 10px 15px;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 0 var(--border-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-deposit {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-withdraw {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .highlight {
+            color: #2563eb;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>연금저축펀드 실효세율 시뮬레이터 v5 (월복리 적용)</h1>
+        <div class="grid">
+            <div class="card">
+                <h2 style="margin-top:0; font-size: 1.2rem;">시뮬레이션 변수</h2>
+                <div class="input-group"><label>투자 시작 나이 (세)</label><input type="number" id="startAge" value="30"></div>
+                <div class="input-group"><label>매월 투자금액 (원)</label><input type="text" id="monthlyInvest"
+                        value="1,000,000" inputmode="numeric" oninput="formatInputNumber(this)"></div>
+                <div class="input-group"><label>공제 받지 않은 원금 (입력값, 원)<br><small
+                            style="font-weight:normal; color:#64748b;">(ISA 전환금, 세액공제 한도초과분 등)</small></label><input
+                        type="text" id="initNonDeducted" value="0" inputmode="numeric" oninput="formatInputNumber(this)"></div>
+                <div class="input-group"><label>연평균 수익률 (%)</label><input type="number" id="returnRate" value="6"
+                        step="0.1"></div>
+                <div class="input-group"><label>출금 시작 나이 (세)</label><input type="number" id="withdrawAge" value="55"
+                        min="55"></div>
+                <div class="input-group"><label>첫해 출금액 (원)</label><input type="text" id="initWithdraw"
+                        value="20,000,000" inputmode="numeric" oninput="formatInputNumber(this)"></div>
+                <div class="input-group"><label>매년 출금액 인상률 (%)</label><input type="number" id="inflation" value="3"
+                        step="0.1"></div>
+                <button onclick="calculate()"
+                    style="width:100%; padding:12px; background:var(--primary-color); color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size: 1rem;">계산
+                    및 차트 업데이트</button>
+            </div>
+
+            <div class="card">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">최종 공제 받지 않은 원금</div>
+                        <div class="summary-value" id="finalNonDeductedTotal">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">최대 누적 자산</div>
+                        <div class="summary-value" id="maxAsset">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">예상 고갈 나이</div>
+                        <div class="summary-value" id="depletionAge">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">총 납부 세금</div>
+                        <div class="summary-value" id="totalTax">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">누적 실효 세율</div>
+                        <div class="summary-value" id="effectiveTaxRate">-</div>
+                    </div>
+                </div>
+                <div class="chart-container"><canvas id="balanceChart"></canvas></div>
+                <div class="table-container">
+                    <table id="resultTable">
+                        <thead>
+                            <tr>
+                                <th>나이</th>
+                                <th>상태</th>
+                                <th>기말 잔액</th>
+                                <th>인출액</th>
+                                <th>비과세(공제미받은원금)</th>
+                                <th>과세대상 인출</th>
+                                <th>납부 세금</th>
+                                <th>세율</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        function formatKRW(val) { return new Intl.NumberFormat('ko-KR').format(Math.round(val)) + '원'; }
+
+        // 입력 필드에 3자리마다 쉼표 자동 삽입
+        function formatInputNumber(el) {
+            // 커서 위치 보정을 위해 기존 길이 저장
+            const cursorPos = el.selectionStart;
+            const oldLen = el.value.length;
+
+            // 숫자와 마이너스만 남기기
+            let raw = el.value.replace(/[^\d-]/g, '');
+            // 마이너스는 맨 앞에만 허용
+            let negative = raw.startsWith('-') ? '-' : '';
+            raw = raw.replace(/-/g, '');
+
+            if (raw === '') {
+                el.value = negative;
+                return;
+            }
+
+            const formatted = negative + new Intl.NumberFormat('ko-KR').format(parseInt(raw));
+            el.value = formatted;
+
+            // 커서 위치 보정
+            const newLen = el.value.length;
+            const diff = newLen - oldLen;
+            el.setSelectionRange(cursorPos + diff, cursorPos + diff);
+        }
+
+        // 쉼표 제거 후 숫자 반환
+        function getNumericValue(id) {
+            return parseInt(document.getElementById(id).value.replace(/,/g, '')) || 0;
+        }
+
+        function calculate() {
+            const startAge = parseInt(document.getElementById('startAge').value);
+            const monthlyInvest = getNumericValue('monthlyInvest');
+            const initNonDeducted = getNumericValue('initNonDeducted');
+            const returnRate = parseFloat(document.getElementById('returnRate').value) / 100;
+            const withdrawAge = parseInt(document.getElementById('withdrawAge').value);
+            const initWithdraw = getNumericValue('initWithdraw');
+            const inflation = parseFloat(document.getElementById('inflation').value) / 100;
+
+            let balance = 0;
+            let cumulativeNonDeducted = initNonDeducted;
+            let logs = [];
+            let chartLabels = [];
+            let chartData = [];
+            let totalTaxPaid = 0;
+            let totalWithdrawn = 0;
+            let maxBalance = 0;
+            let currentAge = startAge;
+
+            // 기하평균 월 수익률 계산: (1 + 연수익률)^(1/12) - 1
+            const monthlyRate = Math.pow(1 + returnRate, 1 / 12) - 1;
+
+            // Phase 1: Accumulation (매월 납입 및 월복리 적용)
+            while (currentAge < withdrawAge) {
+                let annualInvestSum = 0;
+
+                // 12개월 동안 매월 투자금 추가 및 월복리 적용
+                for (let m = 0; m < 12; m++) {
+                    balance += monthlyInvest;
+                    balance *= (1 + monthlyRate);
+                    annualInvestSum += monthlyInvest;
+                }
+
+                // 매년 600만원 초과분은 공제받지 않은 원금으로 합산
+                const annualNonDeducted = Math.max(0, annualInvestSum - 6000000);
+                cumulativeNonDeducted += annualNonDeducted;
+
+                if (balance > maxBalance) maxBalance = balance;
+
+                chartLabels.push(currentAge + '세');
+                chartData.push(Math.round(balance));
+                logs.push({
+                    age: currentAge,
+                    status: '납입기',
+                    balance,
+                    withdrawal: 0,
+                    nonDeductedSpent: 0,
+                    taxable: 0,
+                    tax: 0,
+                    rate: '-'
+                });
+                currentAge++;
+            }
+
+            const finalNonDeductedPoolAtStart = cumulativeNonDeducted;
+            document.getElementById('finalNonDeductedTotal').innerText = formatKRW(finalNonDeductedPoolAtStart);
+
+            // Phase 2: Withdrawal (연 단위 인출 및 연복리 잔액 운용)
+            let withdrawalAmt = initWithdraw;
+            while (balance > 0 && currentAge <= 110) {
+                let actualWithdrawal = Math.min(balance, withdrawalAmt);
+                let curNDW = 0, curTW = 0, tax = 0, taxRateStr = "0%";
+
+                if (cumulativeNonDeducted > 0) {
+                    curNDW = Math.min(actualWithdrawal, cumulativeNonDeducted);
+                    cumulativeNonDeducted -= curNDW;
+                    curTW = actualWithdrawal - curNDW;
+                } else {
+                    curTW = actualWithdrawal;
+                }
+
+                if (curTW > 0) {
+                    if (curTW > 15000000) {
+                        tax = curTW * 0.165;
+                        taxRateStr = "16.5%";
+                    } else {
+                        let rate = currentAge >= 80 ? 0.033 : (currentAge >= 70 ? 0.044 : 0.055);
+                        tax = curTW * rate;
+                        taxRateStr = (rate * 100).toFixed(1) + "%";
+                    }
+                }
+
+                totalTaxPaid += tax;
+                totalWithdrawn += actualWithdrawal;
+
+                // 연초에 인출액과 세금을 차감하고 남은 잔액에 연수익률 적용
+                balance -= (actualWithdrawal + tax);
+                if (balance > 0) {
+                    balance *= (1 + returnRate);
+                }
+
+                chartLabels.push(currentAge + '세');
+                chartData.push(balance > 0 ? Math.round(balance) : 0);
+                logs.push({
+                    age: currentAge,
+                    status: '인출기',
+                    balance: balance > 0 ? balance : 0,
+                    withdrawal: actualWithdrawal,
+                    nonDeductedSpent: curNDW,
+                    taxable: curTW,
+                    tax: tax,
+                    rate: taxRateStr
+                });
+
+                if (balance <= 0) break;
+                withdrawalAmt *= (1 + inflation);
+                currentAge++;
+            }
+
+            // Summary UI
+            document.getElementById('maxAsset').innerText = formatKRW(maxBalance);
+            document.getElementById('depletionAge').innerText = currentAge + '세';
+            document.getElementById('totalTax').innerText = formatKRW(totalTaxPaid);
+            document.getElementById('effectiveTaxRate').innerText = totalWithdrawn > 0 ? ((totalTaxPaid / totalWithdrawn) * 100).toFixed(2) + '%' : '0%';
+
+            // Table UI
+            const tbody = document.querySelector('#resultTable tbody');
+            tbody.innerHTML = logs.map(log => `<tr>
+                <td>${log.age}세</td>
+                <td><span class="badge ${log.status === '납입기' ? 'badge-deposit' : 'badge-withdraw'}">${log.status}</span></td>
+                <td>${formatKRW(log.balance)}</td>
+                <td>${log.withdrawal > 0 ? formatKRW(log.withdrawal) : '-'}</td>
+                <td class="${log.nonDeductedSpent > 0 ? 'highlight' : ''}">${log.nonDeductedSpent > 0 ? formatKRW(log.nonDeductedSpent) : '-'}</td>
+                <td>${log.taxable > 0 ? formatKRW(log.taxable) : '-'}</td>
+                <td>${log.tax > 0 ? formatKRW(log.tax) : '-'}</td>
+                <td>${log.rate}</td>
+            </tr>`).join('');
+
+            // Chart UI
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: '계좌 잔액',
+                        data: chartData,
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderColor: 'rgba(37, 99, 235, 1)',
+                        fill: true, tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => (v >= 100000000 ? (v / 100000000).toFixed(1) + '억' : v) } } }
+                }
+            });
+        }
+        calculate();
+    </script>
+</body>
+
+</html>
