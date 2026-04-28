@@ -1159,13 +1159,13 @@
                     document.getElementById('cmpIsaNormalAsset').innerText = formatKRW(ewTotalAsset);
                     document.getElementById('cmpIsaLowAsset').innerText = formatKRW(ewTotalAsset);
                     document.getElementById('cmpPensionAsset').innerText = formatKRW(ewTotalAsset);
-                    document.getElementById('cmpGeneralExempt').innerText = formatKRW(generalExemptTotal);
-                    document.getElementById('cmpGeneralTax').innerText = formatKRW(generalTax);
+                    document.getElementById('cmpGeneralExempt').innerText = '-';
+                    document.getElementById('cmpGeneralTax').innerText = formatKRW(generalTrueTax);
                     document.getElementById('cmpIsaNormalTax').innerText = formatKRW(isaNormalTax);
                     document.getElementById('cmpIsaLowTax').innerText = formatKRW(isaLowTax);
                     document.getElementById('cmpPensionTax').innerText = formatKRW(ewTotalTax);
                     document.getElementById('cmpPensionBenefit').innerText = '+' + formatKRW(totalDeductionBenefit);
-                    document.getElementById('cmpGeneralNetTax').innerText = formatKRW(generalTax);
+                    document.getElementById('cmpGeneralNetTax').innerText = formatKRW(generalTrueTax);
                     document.getElementById('cmpIsaNormalNetTax').innerText = formatKRW(isaNormalTax);
                     document.getElementById('cmpIsaLowNetTax').innerText = formatKRW(isaLowTax);
                     document.getElementById('cmpPensionNetTax').innerText = formatKRW(netTaxBurden);
