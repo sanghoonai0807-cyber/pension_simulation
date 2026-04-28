@@ -161,6 +161,205 @@
             color: #2563eb;
             font-weight: 600;
         }
+
+        /* 중도해지 토글 버튼 */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            padding: 12px 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+        }
+
+        .toggle-container.active {
+            background: #fef2f2;
+            border-color: #f87171;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #991b1b;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: #cbd5e1;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch.active {
+            background: #ef4444;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(22px);
+        }
+
+        /* 중도해지 결과 카드 */
+        .early-withdrawal-card {
+            display: none;
+            background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .early-withdrawal-card.visible {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ew-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #991b1b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ew-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ew-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #fde2e2;
+        }
+
+        .ew-item-label {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .ew-item-value {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .ew-item-value.no-tax {
+            color: #16a34a;
+        }
+
+        .ew-item-value.tax {
+            color: #dc2626;
+        }
+
+        .ew-item-value.neutral {
+            color: #1e293b;
+        }
+
+        .ew-item-value.highlight-blue {
+            color: #2563eb;
+        }
+
+        .ew-breakdown {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            padding: 14px;
+            border: 1px solid #fde2e2;
+        }
+
+        .ew-breakdown-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .ew-bar-container {
+            display: flex;
+            height: 32px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .ew-bar-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            transition: width 0.5s ease;
+            min-width: 0;
+        }
+
+        .ew-bar-nondeducted {
+            background: #22c55e;
+        }
+
+        .ew-bar-deducted {
+            background: #f59e0b;
+        }
+
+        .ew-bar-profit {
+            background: #ef4444;
+        }
+
+        .ew-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.78rem;
+        }
+
+        .ew-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ew-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -173,23 +372,277 @@
                 <div class="input-group"><label>투자 시작 나이 (세)</label><input type="number" id="startAge" value="30"></div>
                 <div class="input-group"><label>매월 투자금액 (원)</label><input type="text" id="monthlyInvest"
                         value="1,000,000" inputmode="numeric" oninput="formatInputNumber(this)"></div>
-                <div class="input-group"><label>공제 받지 않은 원금 (입력값, 원)<br><small
-                            style="font-weight:normal; color:#64748b;">(ISA 전환금, 세액공제 한도초과분 등)</small></label><input
-                        type="text" id="initNonDeducted" value="0" inputmode="numeric" oninput="formatInputNumber(this)"></div>
+                <div class="input-group"><label>공제 받지 않은 원금 (연간, 원)<br><small
+                            style="font-weight:normal; color:#64748b;">(연간 ISA 전환금, 세액공제 한도초과분 등)</small></label><input
+                        type="text" id="initNonDeducted" value="0" inputmode="numeric"
+                        oninput="formatInputNumber(this)"></div>
                 <div class="input-group"><label>연평균 수익률 (%)</label><input type="number" id="returnRate" value="6"
                         step="0.1"></div>
+                <div class="input-group"><label>연간 세액공제 한도 (원)<br><small
+                            style="font-weight:normal; color:#64748b;">(연금저축 단독 600만, IRP 합산 시
+                            900만)</small></label><input type="text" id="deductionLimit" value="6,000,000"
+                        inputmode="numeric" oninput="formatInputNumber(this)"></div>
                 <div class="input-group"><label>출금 시작 나이 (세)</label><input type="number" id="withdrawAge" value="55"
                         min="55"></div>
                 <div class="input-group"><label>첫해 출금액 (원)</label><input type="text" id="initWithdraw"
                         value="20,000,000" inputmode="numeric" oninput="formatInputNumber(this)"></div>
                 <div class="input-group"><label>매년 출금액 인상률 (%)</label><input type="number" id="inflation" value="3"
                         step="0.1"></div>
+
+                <div class="toggle-container" id="earlyWithdrawalToggle">
+                    <div class="toggle-switch" id="ewSwitch" onclick="toggleEarlyWithdrawal()"></div>
+                    <div>
+                        <div class="toggle-label">🚨 중도해지 시뮬레이션</div>
+                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">해지 나이 입력 후 세금 계산</div>
+                    </div>
+                </div>
+                <div id="ewOptionsGroup" style="display:none;">
+                    <div class="input-group" style="margin-top: 8px;">
+                        <label style="color: #991b1b;">중도해지 나이 (세)</label>
+                        <input type="number" id="ewAge" value="40" min="1" style="border-color: #fca5a5;">
+                    </div>
+                    <div class="input-group">
+                        <label>세액공제율</label>
+                        <div style="display:flex; gap:12px; margin-top:4px;">
+                            <label
+                                style="font-weight:normal; font-size:0.85rem; display:flex; align-items:center; gap:4px;">
+                                <input type="radio" name="ewDeductionRate" value="0.165" checked> 16.5% (총급여 5,500만원 이하)
+                            </label>
+                            <label
+                                style="font-weight:normal; font-size:0.85rem; display:flex; align-items:center; gap:4px;">
+                                <input type="radio" name="ewDeductionRate" value="0.132"> 13.2% (총급여 5,500만원 초과)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>연간 인플레이션율 (%)</label>
+                        <input type="number" id="ewInflation" value="2" step="0.1" min="0">
+                    </div>
+                </div>
+
                 <button onclick="calculate()"
                     style="width:100%; padding:12px; background:var(--primary-color); color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size: 1rem;">계산
                     및 차트 업데이트</button>
             </div>
 
             <div class="card">
+                <!-- 중도해지 결과 카드 -->
+                <div class="early-withdrawal-card" id="ewCard">
+                    <div class="ew-title">⚠️ 중도해지 시뮬레이션 결과 (<span id="ewAgeDisplay">40</span>세 해지 기준, 투자기간 <span
+                            id="ewYearsDisplay">10</span>년)</div>
+                    <div class="ew-grid">
+                        <div class="ew-item">
+                            <div class="ew-item-label">세전 총 자산</div>
+                            <div class="ew-item-value neutral" id="ewTotalAsset">-</div>
+                        </div>
+                        <div class="ew-item">
+                            <div class="ew-item-label">총 납입 원금</div>
+                            <div class="ew-item-value neutral" id="ewTotalPrincipal">-</div>
+                        </div>
+                        <div class="ew-item">
+                            <div class="ew-item-label">투자 수익금</div>
+                            <div class="ew-item-value neutral" id="ewProfit">-</div>
+                        </div>
+                    </div>
+
+                    <!-- 세금 상세 -->
+                    <div class="ew-breakdown" style="margin-bottom:12px;">
+                        <div class="ew-breakdown-title">💰 중도해지 세금 상세</div>
+                        <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #fde2e2;">
+                                <td style="padding:8px 4px;">공제 미적용 원금</td>
+                                <td style="padding:8px 4px; text-align:right; color:#16a34a; font-weight:600;"
+                                    id="ewNonDeducted">-</td>
+                                <td style="padding:8px 4px; text-align:right; color:#16a34a;">세금 0%</td>
+                                <td style="padding:8px 4px; text-align:right; font-weight:600;" id="ewTaxNonDeducted">0원
+                                </td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #fde2e2;">
+                                <td style="padding:8px 4px;">공제 적용 원금</td>
+                                <td style="padding:8px 4px; text-align:right; color:#f59e0b; font-weight:600;"
+                                    id="ewDeducted">-</td>
+                                <td style="padding:8px 4px; text-align:right; color:#dc2626;">세금 16.5%</td>
+                                <td style="padding:8px 4px; text-align:right; font-weight:600; color:#dc2626;"
+                                    id="ewTaxDeducted">-</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #fde2e2;">
+                                <td style="padding:8px 4px;">수익금</td>
+                                <td style="padding:8px 4px; text-align:right; color:#ef4444; font-weight:600;"
+                                    id="ewProfitAmt">-</td>
+                                <td style="padding:8px 4px; text-align:right; color:#dc2626;">세금 16.5%</td>
+                                <td style="padding:8px 4px; text-align:right; font-weight:600; color:#dc2626;"
+                                    id="ewTaxProfit">-</td>
+                            </tr>
+                            <tr style="background:#fff5f5; font-weight:700;">
+                                <td style="padding:8px 4px;" colspan="2">총 중도해지 세금</td>
+                                <td style="padding:8px 4px; text-align:right;" colspan="2" id="ewTotalTax">-</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 세액공제 혜택 vs 실질 부담 -->
+                    <div class="ew-breakdown"
+                        style="margin-bottom:12px; background:rgba(219,234,254,0.4); border-color:#bfdbfe;">
+                        <div class="ew-breakdown-title">📊 세액공제 혜택 vs 실질 세금 부담</div>
+                        <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #dbeafe;">
+                                <td style="padding:8px 4px;">누적 세액공제 혜택 (매년 받은 금액)</td>
+                                <td style="padding:8px 4px; text-align:right; color:#16a34a; font-weight:700;"
+                                    id="ewDeductionBenefit">-</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #dbeafe;">
+                                <td style="padding:8px 4px;">중도해지 세금 (위 합계)</td>
+                                <td style="padding:8px 4px; text-align:right; color:#dc2626; font-weight:700;"
+                                    id="ewTotalTax2">-</td>
+                            </tr>
+                            <tr style="background:#eff6ff; font-weight:700;">
+                                <td style="padding:8px 4px;">실질 세금 부담 (세금 - 공제혜택)</td>
+                                <td style="padding:8px 4px; text-align:right;" id="ewNetTaxBurden">-</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 실수령액 & 실효세율 -->
+                    <div class="ew-grid" style="margin-bottom:12px;">
+                        <div class="ew-item" style="border-color:#bfdbfe; background:rgba(219,234,254,0.5);">
+                            <div class="ew-item-label">세후 실수령액</div>
+                            <div class="ew-item-value highlight-blue" id="ewNetAmount">-</div>
+                        </div>
+                        <div class="ew-item" style="border-color:#bfdbfe; background:rgba(219,234,254,0.5);">
+                            <div class="ew-item-label">실효세율 (세금 ÷ 총자산)</div>
+                            <div class="ew-item-value highlight-blue" id="ewEffectiveRate">-</div>
+                        </div>
+                        <div class="ew-item" style="border-color:#bbf7d0; background:rgba(220,252,231,0.5);">
+                            <div class="ew-item-label">실질 실효세율 (공제혜택 감안)</div>
+                            <div class="ew-item-value no-tax" id="ewNetEffectiveRate">-</div>
+                        </div>
+                    </div>
+
+                    <!-- 인플레이션 감안 -->
+                    <div class="ew-breakdown"
+                        style="margin-bottom:12px; background:rgba(254,243,199,0.4); border-color:#fde68a;">
+                        <div class="ew-breakdown-title">📉 인플레이션 감안 실질 가치</div>
+                        <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #fde68a;">
+                                <td style="padding:8px 4px;">명목 실수령액</td>
+                                <td style="padding:8px 4px; text-align:right; font-weight:600;" id="ewNominalNet">-</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #fde68a;">
+                                <td style="padding:8px 4px;">인플레이션 조정 실질 가치 (<span id="ewInflDisplay">2</span>%×<span
+                                        id="ewYearsDisplay2">10</span>년)</td>
+                                <td style="padding:8px 4px; text-align:right; font-weight:600;" id="ewRealNet">-</td>
+                            </tr>
+                            <tr style="background:#fef9c3; font-weight:700;">
+                                <td style="padding:8px 4px;">실질 손익 (실질가치 - 납입원금)</td>
+                                <td style="padding:8px 4px; text-align:right;" id="ewRealGainLoss">-</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 계좌 비교 테이블 -->
+                    <div class="ew-breakdown" style="background:rgba(241,245,249,0.6); border-color:#cbd5e1;">
+                        <div class="ew-breakdown-title">🔄 동일 조건 계좌별 세금 비교</div>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; font-size:0.82rem; border-collapse:collapse; text-align:right;">
+                                <thead>
+                                    <tr style="border-bottom:2px solid #cbd5e1; text-align:center;">
+                                        <th style="padding:8px 4px; text-align:left;">항목</th>
+                                        <th style="padding:8px 4px;">일반계좌<br><small
+                                                style="color:#64748b;">(해외ETF)</small><br><small
+                                                style="color:#f59e0b;">※매년 harvest 가정</small></th>
+                                        <th style="padding:8px 4px;">ISA 일반형<br><small style="color:#64748b;">(200만원
+                                                공제)</small></th>
+                                        <th style="padding:8px 4px;">ISA 서민형<br><small style="color:#64748b;">(400만원
+                                                공제)</small></th>
+                                        <th style="padding:8px 4px; color:#991b1b;">연금저축<br><small>(중도해지)</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom:1px solid #e2e8f0;">
+                                        <td style="padding:8px 4px; text-align:left;">세전 자산</td>
+                                        <td style="padding:8px 4px;" id="cmpGeneralAsset">-</td>
+                                        <td style="padding:8px 4px;" id="cmpIsaNormalAsset">-</td>
+                                        <td style="padding:8px 4px;" id="cmpIsaLowAsset">-</td>
+                                        <td style="padding:8px 4px; color:#991b1b;" id="cmpPensionAsset">-</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid #e2e8f0;">
+                                        <td style="padding:8px 4px; text-align:left;">비과세 공제</td>
+                                        <td style="padding:8px 4px; color:#64748b;" id="cmpGeneralExempt">-</td>
+                                        <td style="padding:8px 4px; color:#64748b;">200만원</td>
+                                        <td style="padding:8px 4px; color:#64748b;">400만원</td>
+                                        <td style="padding:8px 4px; color:#64748b;">-</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid #e2e8f0;">
+                                        <td style="padding:8px 4px; text-align:left;">세금</td>
+                                        <td style="padding:8px 4px; color:#dc2626;" id="cmpGeneralTax">-</td>
+                                        <td style="padding:8px 4px; color:#dc2626;" id="cmpIsaNormalTax">-</td>
+                                        <td style="padding:8px 4px; color:#dc2626;" id="cmpIsaLowTax">-</td>
+                                        <td style="padding:8px 4px; color:#dc2626;" id="cmpPensionTax">-</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid #e2e8f0;">
+                                        <td style="padding:8px 4px; text-align:left;">세액공제 혜택</td>
+                                        <td style="padding:8px 4px; color:#94a3b8;">-</td>
+                                        <td style="padding:8px 4px; color:#94a3b8;">-</td>
+                                        <td style="padding:8px 4px; color:#94a3b8;">-</td>
+                                        <td style="padding:8px 4px; color:#16a34a; font-weight:600;"
+                                            id="cmpPensionBenefit">-</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid #e2e8f0;">
+                                        <td style="padding:8px 4px; text-align:left;">실질 세금</td>
+                                        <td style="padding:8px 4px; font-weight:600;" id="cmpGeneralNetTax">-</td>
+                                        <td style="padding:8px 4px; font-weight:600;" id="cmpIsaNormalNetTax">-</td>
+                                        <td style="padding:8px 4px; font-weight:600;" id="cmpIsaLowNetTax">-</td>
+                                        <td style="padding:8px 4px; font-weight:600; color:#991b1b;"
+                                            id="cmpPensionNetTax">-</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+                                        <td style="padding:8px 4px; text-align:left; font-weight:700;">세후 수령액</td>
+                                        <td style="padding:8px 4px; font-weight:700;" id="cmpGeneralNet">-</td>
+                                        <td style="padding:8px 4px; font-weight:700;" id="cmpIsaNormalNet">-</td>
+                                        <td style="padding:8px 4px; font-weight:700;" id="cmpIsaLowNet">-</td>
+                                        <td style="padding:8px 4px; font-weight:700; color:#2563eb;" id="cmpPensionNet">
+                                            -</td>
+                                    </tr>
+                                    <tr style="background:#f1f5f9;">
+                                        <td style="padding:8px 4px; text-align:left; font-weight:700;">실효세율</td>
+                                        <td style="padding:8px 4px; font-weight:700;" id="cmpGeneralRate">-</td>
+                                        <td style="padding:8px 4px; font-weight:700;" id="cmpIsaNormalRate">-</td>
+                                        <td style="padding:8px 4px; font-weight:700;" id="cmpIsaLowRate">-</td>
+                                        <td style="padding:8px 4px; font-weight:700; color:#2563eb;"
+                                            id="cmpPensionRate">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top:10px; padding:8px 12px; border-radius:6px; font-size:0.82rem; font-weight:600;"
+                            id="cmpVerdict"></div>
+                    </div>
+
+                    <!-- 자산 구성 바 -->
+                    <div class="ew-breakdown" style="margin-top:12px;">
+                        <div class="ew-breakdown-title">자산 구성 비율</div>
+                        <div class="ew-bar-container" id="ewBar">
+                            <div class="ew-bar-segment ew-bar-nondeducted" id="ewBarNonDeducted"></div>
+                            <div class="ew-bar-segment ew-bar-deducted" id="ewBarDeducted"></div>
+                            <div class="ew-bar-segment ew-bar-profit" id="ewBarProfit"></div>
+                        </div>
+                        <div class="ew-legend">
+                            <div class="ew-legend-item">
+                                <div class="ew-legend-dot" style="background:#22c55e;"></div>
+                                <span>공제 미적용 원금 (비과세)</span>
+                            </div>
+                            <div class="ew-legend-item">
+                                <div class="ew-legend-dot" style="background:#f59e0b;"></div>
+                                <span>공제 적용 원금 (16.5%)</span>
+                            </div>
+                            <div class="ew-legend-item">
+                                <div class="ew-legend-dot" style="background:#ef4444;"></div>
+                                <span>수익금 (16.5%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="summary-grid">
                     <div class="summary-item">
                         <div class="summary-label">최종 공제 받지 않은 원금</div>
@@ -236,6 +689,17 @@
 
     <script>
         let myChart = null;
+        let isEarlyWithdrawal = false;
+
+        function toggleEarlyWithdrawal() {
+            isEarlyWithdrawal = !isEarlyWithdrawal;
+            const sw = document.getElementById('ewSwitch');
+            const container = document.getElementById('earlyWithdrawalToggle');
+            sw.classList.toggle('active', isEarlyWithdrawal);
+            container.classList.toggle('active', isEarlyWithdrawal);
+            document.getElementById('ewOptionsGroup').style.display = isEarlyWithdrawal ? 'block' : 'none';
+            calculate();
+        }
 
         function formatKRW(val) { return new Intl.NumberFormat('ko-KR').format(Math.round(val)) + '원'; }
 
@@ -275,12 +739,13 @@
             const monthlyInvest = getNumericValue('monthlyInvest');
             const initNonDeducted = getNumericValue('initNonDeducted');
             const returnRate = parseFloat(document.getElementById('returnRate').value) / 100;
+            const deductionLimit = getNumericValue('deductionLimit');
             const withdrawAge = parseInt(document.getElementById('withdrawAge').value);
             const initWithdraw = getNumericValue('initWithdraw');
             const inflation = parseFloat(document.getElementById('inflation').value) / 100;
 
             let balance = 0;
-            let cumulativeNonDeducted = initNonDeducted;
+            let cumulativeNonDeducted = 0;
             let logs = [];
             let chartLabels = [];
             let chartData = [];
@@ -303,8 +768,13 @@
                     annualInvestSum += monthlyInvest;
                 }
 
-                // 매년 600만원 초과분은 공제받지 않은 원금으로 합산
-                const annualNonDeducted = Math.max(0, annualInvestSum - 6000000);
+                // initNonDeducted(ISA전환금 등 추가 납입)도 계좌에 반영
+                if (initNonDeducted > 0) {
+                    balance += initNonDeducted;
+                }
+
+                // 매년 공제한도 초과분 + 연간 공제미적용 추가납입액을 비과세 원금으로 합산
+                const annualNonDeducted = Math.max(0, annualInvestSum - deductionLimit) + initNonDeducted;
                 cumulativeNonDeducted += annualNonDeducted;
 
                 if (balance > maxBalance) maxBalance = balance;
@@ -327,6 +797,189 @@
             const finalNonDeductedPoolAtStart = cumulativeNonDeducted;
             document.getElementById('finalNonDeductedTotal').innerText = formatKRW(finalNonDeductedPoolAtStart);
 
+            // ========== 중도해지 시뮬레이션 ==========
+            const ewCard = document.getElementById('ewCard');
+            if (isEarlyWithdrawal) {
+                const ewAge = parseInt(document.getElementById('ewAge').value);
+                const deductionRate = parseFloat(document.querySelector('input[name="ewDeductionRate"]:checked').value);
+                const ewInflRate = parseFloat(document.getElementById('ewInflation').value) / 100;
+
+                document.getElementById('ewAgeDisplay').innerText = ewAge;
+
+                if (ewAge <= startAge) {
+                    ewCard.classList.remove('visible');
+                } else {
+                    ewCard.classList.add('visible');
+                    const ewYears = ewAge - startAge;
+                    document.getElementById('ewYearsDisplay').innerText = ewYears;
+                    document.getElementById('ewYearsDisplay2').innerText = ewYears;
+                    document.getElementById('ewInflDisplay').innerText = (ewInflRate * 100).toFixed(1);
+
+                    // 중도해지 시점까지 적립 시뮬레이션
+                    let ewBalance = 0;
+                    let ewCumulativeDeducted = 0;
+                    let ewCumulativeCurrentNonDeducted = 0;
+                    let totalDeductionBenefit = 0;
+
+                    for (let y = 0; y < ewYears; y++) {
+                        let annualSum = 0;
+                        for (let m = 0; m < 12; m++) {
+                            ewBalance += monthlyInvest;
+                            ewBalance *= (1 + monthlyRate);
+                            annualSum += monthlyInvest;
+                        }
+                        // initNonDeducted(ISA전환금 등)도 잔액에 포함
+                        if (initNonDeducted > 0) {
+                            ewBalance += initNonDeducted;
+                        }
+                        // 매년 공제 적용/미적용 원금 분리 추적
+                        const deductedThisYear = Math.min(annualSum, deductionLimit);
+                        const nonDeductedThisYear = Math.max(0, annualSum - deductionLimit) + initNonDeducted;
+                        ewCumulativeDeducted += deductedThisYear;
+                        ewCumulativeCurrentNonDeducted += nonDeductedThisYear;
+                        // 매년 세액공제 혜택: 공제적용액 × 공제율
+                        totalDeductionBenefit += deductedThisYear * deductionRate;
+                    }
+
+                    const ewTotalAsset = ewBalance;
+                    const ewTotalPrincipal = (monthlyInvest * 12 + initNonDeducted) * ewYears;
+                    const ewProfit = Math.max(0, ewTotalAsset - ewTotalPrincipal);
+                    const ewDeducted = ewCumulativeDeducted;
+                    const ewNonDeducted = ewCumulativeCurrentNonDeducted;
+
+                    // 중도해지 세금
+                    const taxOnDeducted = ewDeducted * 0.165;
+                    const taxOnProfit = ewProfit * 0.165;
+                    const ewTotalTax = taxOnDeducted + taxOnProfit;
+                    const ewNetAmount = ewTotalAsset - ewTotalTax;
+                    const netTaxBurden = ewTotalTax - totalDeductionBenefit;
+                    const ewEffectiveRate = ewTotalAsset > 0 ? (ewTotalTax / ewTotalAsset) * 100 : 0;
+                    const netEffectiveRate = ewTotalAsset > 0 ? (netTaxBurden / ewTotalAsset) * 100 : 0;
+
+                    // 인플레이션 감안
+                    const inflFactor = Math.pow(1 + ewInflRate, ewYears);
+                    const realNetAmount = ewNetAmount / inflFactor;
+                    const realGainLoss = realNetAmount - ewTotalPrincipal;
+
+                    // 일반계좌 (해외ETF): 매년 250만원 비과세 harvest 가정
+                    const generalExemptTotal = 2500000 * ewYears;
+                    const generalTax = Math.max(0, ewProfit - generalExemptTotal) * 0.22;
+                    const generalNet = ewTotalAsset - generalTax;
+                    const generalEffRate = ewTotalAsset > 0 ? (generalTax / ewTotalAsset) * 100 : 0;
+
+                    // ISA 일반형: 수익 - 200만원 공제 후 9.9%
+                    const isaNormalTax = Math.max(0, ewProfit - 2000000) * 0.099;
+                    const isaNormalNet = ewTotalAsset - isaNormalTax;
+                    const isaNormalEffRate = ewTotalAsset > 0 ? (isaNormalTax / ewTotalAsset) * 100 : 0;
+
+                    // ISA 서민형: 수익 - 400만원 공제 후 9.9%
+                    const isaLowTax = Math.max(0, ewProfit - 4000000) * 0.099;
+                    const isaLowNet = ewTotalAsset - isaLowTax;
+                    const isaLowEffRate = ewTotalAsset > 0 ? (isaLowTax / ewTotalAsset) * 100 : 0;
+
+                    // 연금저축: 공정 비교를 위해 순수 세금 기준 수령액 산출
+                    const pensionNet = ewTotalAsset - ewTotalTax;  // 순수 세후 (공제혜택 미감안)
+                    const pensionNetAdjusted = ewTotalAsset - netTaxBurden;  // 공제혜택 감안 수령액
+                    const pensionEffRate = ewTotalAsset > 0 ? (ewTotalTax / ewTotalAsset) * 100 : 0;
+                    const pensionAdjEffRate = ewTotalAsset > 0 ? (netTaxBurden / ewTotalAsset) * 100 : 0;
+
+                    // === UI 업데이트 ===
+                    // 상단 요약
+                    document.getElementById('ewTotalAsset').innerText = formatKRW(ewTotalAsset);
+                    document.getElementById('ewTotalPrincipal').innerText = formatKRW(ewTotalPrincipal);
+                    document.getElementById('ewProfit').innerText = formatKRW(ewProfit);
+
+                    // 세금 상세 테이블
+                    document.getElementById('ewNonDeducted').innerText = formatKRW(ewNonDeducted);
+                    document.getElementById('ewTaxNonDeducted').innerText = '0원';
+                    document.getElementById('ewDeducted').innerText = formatKRW(ewDeducted);
+                    document.getElementById('ewTaxDeducted').innerText = formatKRW(taxOnDeducted);
+                    document.getElementById('ewProfitAmt').innerText = formatKRW(ewProfit);
+                    document.getElementById('ewTaxProfit').innerText = formatKRW(taxOnProfit);
+                    document.getElementById('ewTotalTax').innerText = formatKRW(ewTotalTax);
+
+                    // 세액공제 혜택 vs 실질 부담
+                    document.getElementById('ewDeductionBenefit').innerText = '+' + formatKRW(totalDeductionBenefit);
+                    document.getElementById('ewTotalTax2').innerText = formatKRW(ewTotalTax);
+                    const burdenEl = document.getElementById('ewNetTaxBurden');
+                    burdenEl.innerText = (netTaxBurden >= 0 ? '' : '-') + formatKRW(Math.abs(netTaxBurden));
+                    burdenEl.style.color = netTaxBurden > 0 ? '#dc2626' : '#16a34a';
+
+                    // 실수령액 & 실효세율
+                    document.getElementById('ewNetAmount').innerText = formatKRW(ewNetAmount);
+                    document.getElementById('ewEffectiveRate').innerText = ewEffectiveRate.toFixed(2) + '%';
+                    document.getElementById('ewNetEffectiveRate').innerText = netEffectiveRate.toFixed(2) + '%';
+
+                    // 인플레이션
+                    document.getElementById('ewNominalNet').innerText = formatKRW(ewNetAmount);
+                    document.getElementById('ewRealNet').innerText = formatKRW(realNetAmount);
+                    const glEl = document.getElementById('ewRealGainLoss');
+                    glEl.innerText = (realGainLoss >= 0 ? '+' : '') + formatKRW(realGainLoss);
+                    glEl.style.color = realGainLoss >= 0 ? '#16a34a' : '#dc2626';
+
+                    // 계좌 비교 테이블
+                    document.getElementById('cmpGeneralAsset').innerText = formatKRW(ewTotalAsset);
+                    document.getElementById('cmpIsaNormalAsset').innerText = formatKRW(ewTotalAsset);
+                    document.getElementById('cmpIsaLowAsset').innerText = formatKRW(ewTotalAsset);
+                    document.getElementById('cmpPensionAsset').innerText = formatKRW(ewTotalAsset);
+                    document.getElementById('cmpGeneralExempt').innerText = formatKRW(generalExemptTotal);
+                    document.getElementById('cmpGeneralTax').innerText = formatKRW(generalTax);
+                    document.getElementById('cmpIsaNormalTax').innerText = formatKRW(isaNormalTax);
+                    document.getElementById('cmpIsaLowTax').innerText = formatKRW(isaLowTax);
+                    document.getElementById('cmpPensionTax').innerText = formatKRW(ewTotalTax);
+                    document.getElementById('cmpPensionBenefit').innerText = '+' + formatKRW(totalDeductionBenefit);
+                    document.getElementById('cmpGeneralNetTax').innerText = formatKRW(generalTax);
+                    document.getElementById('cmpIsaNormalNetTax').innerText = formatKRW(isaNormalTax);
+                    document.getElementById('cmpIsaLowNetTax').innerText = formatKRW(isaLowTax);
+                    document.getElementById('cmpPensionNetTax').innerText = formatKRW(netTaxBurden);
+                    document.getElementById('cmpGeneralNet').innerText = formatKRW(generalNet);
+                    document.getElementById('cmpIsaNormalNet').innerText = formatKRW(isaNormalNet);
+                    document.getElementById('cmpIsaLowNet').innerText = formatKRW(isaLowNet);
+                    document.getElementById('cmpPensionNet').innerText = formatKRW(pensionNetAdjusted);
+                    document.getElementById('cmpGeneralRate').innerText = generalEffRate.toFixed(2) + '%';
+                    document.getElementById('cmpIsaNormalRate').innerText = isaNormalEffRate.toFixed(2) + '%';
+                    document.getElementById('cmpIsaLowRate').innerText = isaLowEffRate.toFixed(2) + '%';
+                    document.getElementById('cmpPensionRate').innerText = pensionAdjEffRate.toFixed(2) + '%';
+
+                    // 비교 판정
+                    const verdictEl = document.getElementById('cmpVerdict');
+                    // 공정 비교: 연금저축은 공제혜택 감안 수령액으로 비교
+                    const nets = [
+                        { name: '일반계좌', val: generalNet },
+                        { name: 'ISA 일반형', val: isaNormalNet },
+                        { name: 'ISA 서민형', val: isaLowNet },
+                        { name: '연금저축(공제혜택감안)', val: pensionNetAdjusted }
+                    ];
+                    nets.sort((a, b) => b.val - a.val);
+                    const best = nets[0];
+                    const worst = nets[nets.length - 1];
+                    verdictEl.innerHTML = `✅ <strong>${best.name}</strong>이(가) 가장 유리, <strong>${worst.name}</strong> 대비 <strong>${formatKRW(best.val - worst.val)}</strong> 더 수령<br><small style="color:#64748b;">※ 일반계좌는 매년 250만원 harvest 가정, 연금저축은 누적 세액공제 혜택 감안</small>`;
+                    verdictEl.style.background = '#dcfce7';
+                    verdictEl.style.color = '#166534';
+
+                    // 비율 바 (실제 잔액 내 자산 구성만 표시)
+                    // ewTotalAsset = ewTotalPrincipal + ewProfit
+                    // ewTotalPrincipal = ewCumulativeDeducted + ewCumulativeCurrentNonDeducted
+                    const barDeducted = ewCumulativeDeducted;
+                    const barNonDeducted = ewCumulativeCurrentNonDeducted;
+                    const barProfit = ewProfit;
+                    const barTotal = barDeducted + barNonDeducted + barProfit;
+                    if (barTotal > 0) {
+                        const pctNon = (barNonDeducted / barTotal) * 100;
+                        const pctDed = (barDeducted / barTotal) * 100;
+                        const pctPro = (barProfit / barTotal) * 100;
+                        document.getElementById('ewBarNonDeducted').style.width = pctNon + '%';
+                        document.getElementById('ewBarNonDeducted').innerText = pctNon >= 8 ? pctNon.toFixed(1) + '%' : '';
+                        document.getElementById('ewBarDeducted').style.width = pctDed + '%';
+                        document.getElementById('ewBarDeducted').innerText = pctDed >= 8 ? pctDed.toFixed(1) + '%' : '';
+                        document.getElementById('ewBarProfit').style.width = pctPro + '%';
+                        document.getElementById('ewBarProfit').innerText = pctPro >= 8 ? pctPro.toFixed(1) + '%' : '';
+                    }
+                }
+            } else {
+                ewCard.classList.remove('visible');
+            }
+
             // Phase 2: Withdrawal (연 단위 인출 및 연복리 잔액 운용)
             let withdrawalAmt = initWithdraw;
             while (balance > 0 && currentAge <= 110) {
@@ -342,7 +995,8 @@
                 }
 
                 if (curTW > 0) {
-                    if (curTW > 15000000) {
+                    // 2025년 세법: 연간 총 수령액(비과세 포함) 1,200만원 초과 시 16.5% 분리과세
+                    if (actualWithdrawal > 12000000) {
                         tax = curTW * 0.165;
                         taxRateStr = "16.5%";
                     } else {
@@ -355,9 +1009,10 @@
                 totalTaxPaid += tax;
                 totalWithdrawn += actualWithdrawal;
 
-                // 연초에 인출액과 세금을 차감하고 남은 잔액에 연수익률 적용
-                balance -= (actualWithdrawal + tax);
+                // 세금은 인출액에서 원천징수됨 (잔액에서는 인출액만 차감)
+                balance -= actualWithdrawal;
                 if (balance > 0) {
+                    // 인출기는 연복리 적용 (납입기 월복리와 차이 미미, 연 단위 인출에 맞춤)
                     balance *= (1 + returnRate);
                 }
 
