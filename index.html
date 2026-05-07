@@ -818,6 +818,12 @@
             return parseInt(document.getElementById(id).value.replace(/,/g, '')) || 0;
         }
 
+        // 빈 입력/NaN 방어용 float 파서 (기본값 fallback)
+        function getFloatValue(id, defaultVal) {
+            const v = parseFloat(document.getElementById(id).value);
+            return isNaN(v) ? defaultVal : v;
+        }
+
         const taxBrackets = [
             { limit: 14000000, rate: 0.066 },
             { limit: 50000000, rate: 0.165 },
@@ -856,16 +862,16 @@
         }
 
         function calculate() {
-            const startAge = parseInt(document.getElementById('startAge').value);
+            const startAge = parseInt(document.getElementById('startAge').value) || 30;
             const monthlyInvest = getNumericValue('monthlyInvest');
             const initNonDeducted = getNumericValue('initNonDeducted');
-            const returnRate = parseFloat(document.getElementById('returnRate').value) / 100;
-            const divRate = parseFloat(document.getElementById('dividendRate').value) / 100;
+            const returnRate = getFloatValue('returnRate', 6) / 100;
+            const divRate = getFloatValue('dividendRate', 1.5) / 100;
             const deductionLimit = getNumericValue('deductionLimit');
             const deductionRate = parseFloat(document.querySelector('input[name="deductionRate"]:checked')?.value || "0.165");
-            const withdrawAge = parseInt(document.getElementById('withdrawAge').value);
+            const withdrawAge = parseInt(document.getElementById('withdrawAge').value) || 55;
             const initWithdraw = getNumericValue('initWithdraw');
-            const inflation = parseFloat(document.getElementById('inflation').value) / 100;
+            const inflation = getFloatValue('inflation', 3) / 100;
             const earnedIncome = getNumericValue('earnedIncome');
 
             let balance = 0;
@@ -985,8 +991,8 @@
             // ========== 중도해지 시뮬레이션 ==========
             const ewCard = document.getElementById('ewCard');
             if (isEarlyWithdrawal) {
-                const ewAge = parseInt(document.getElementById('ewAge').value);
-                const ewInflRate = parseFloat(document.getElementById('ewInflation').value) / 100;
+                const ewAge = parseInt(document.getElementById('ewAge').value) || (startAge + 1);
+                const ewInflRate = getFloatValue('ewInflation', 2) / 100;
 
                 document.getElementById('ewAgeDisplay').innerText = ewAge;
 
@@ -1078,9 +1084,9 @@
                     const ewDeducted = ewCumulativeDeducted;
                     const ewNonDeducted = ewCumulativeCurrentNonDeducted;
 
-                    // 환급금 재투자 계좌(Side Account) 세금 정산
+                    // 환급금 재투자 계좌(Side Account) 세금 정산 (해외ETF 가정 - 250만원 기본공제 후 22%)
                     const ewSideProfitFinal = Math.max(0, ewSideBalance - ewSidePrincipal);
-                    const ewSideCapTax = ewSideProfitFinal * 0.22;
+                    const ewSideCapTax = Math.max(0, ewSideProfitFinal - 2500000) * 0.22;
                     const ewSideNet = ewSideBalance - ewSideCapTax;
 
                     // 중도해지 세금
@@ -1097,9 +1103,9 @@
                     const realNetAmount = ewNetAmount / inflFactor;
                     const realGainLoss = realNetAmount - ewTotalPrincipal;
 
-                    // 일반계좌 (해외ETF): 매년 비과세 harvest 완료 후 남은 수익에만 과세
+                    // 일반계좌 (해외ETF): 매년 비과세 harvest 완료 후 남은 수익에 마지막 해 250만원 공제 적용 후 22% 양도세
                     const ewGenProfitFinal = Math.max(0, ewGenBalance - ewGenPrincipal);
-                    const generalCapTax = ewGenProfitFinal * 0.22;
+                    const generalCapTax = Math.max(0, ewGenProfitFinal - 2500000) * 0.22;
                     const generalNet = ewGenBalance - generalCapTax;
                     const generalTrueTax = ewTotalAsset - generalNet;
                     const generalEffRate = ewTotalAsset > 0 ? (generalTrueTax / ewTotalAsset) * 100 : 0;
@@ -1114,10 +1120,8 @@
                     const isaLowNet = ewTotalAsset - isaLowTax;
                     const isaLowEffRate = ewTotalAsset > 0 ? (isaLowTax / ewTotalAsset) * 100 : 0;
 
-                    // 연금저축: 공정 비교를 위해 순수 세금 기준 수령액 산출
-                    const pensionNet = ewTotalAsset - ewTotalTax;  // 순수 세후 (공제혜택 미감안)
+                    // 연금저축: 공정 비교를 위해 공제혜택 감안 수령액 산출
                     const pensionNetAdjusted = ewNetAmount + ewSideNet;  // 공제혜택 감안 수령액
-                    const pensionEffRate = ewTotalAsset > 0 ? (ewTotalTax / ewTotalAsset) * 100 : 0;
                     const pensionAdjEffRate = ewTotalAsset > 0 ? (netTaxBurden / ewTotalAsset) * 100 : 0;
 
                     // === UI 업데이트 ===
@@ -1232,8 +1236,9 @@
                 }
 
                 if (curTW > 0) {
-                    // 2025년 세법: 연간 총 수령액(비과세 포함) 1,200만원 초과 시 16.5% 분리과세
-                    if (actualWithdrawal > 12000000) {
+                    // 2024년 시행 세법: 사적연금 분리과세 한도 연 1,500만원으로 상향
+                    // 1,500만원 초과 시 16.5% 분리과세 또는 종합과세 선택 가능 (본 시뮬레이터는 16.5% 가정)
+                    if (actualWithdrawal > 15000000) {
                         tax = curTW * 0.165;
                         taxRateStr = "16.5%";
                     } else {
@@ -1276,6 +1281,8 @@
             document.getElementById('depletionAge').innerText = currentAge + '세';
             document.getElementById('totalTax').innerText = formatKRW(totalTaxPaid);
             document.getElementById('effectiveTaxRate').innerText = totalWithdrawn > 0 ? ((totalTaxPaid / totalWithdrawn) * 100).toFixed(2) + '%' : '0%';
+            // 종합과세 진입 나이 표시 (일반/Side 계좌 배당 합산이 2,000만원 초과한 첫 해)
+            document.getElementById('compTaxAgeDisplay').innerText = compTaxAge !== null ? compTaxAge + '세' : '진입안함';
 
             // Table UI
             const tbody = document.querySelector('#resultTable tbody');
@@ -1325,14 +1332,14 @@
                 const ncTotalPrincipal = (monthlyInvest * 12 + initNonDeducted) * ncYears;
                 const ncProfit = Math.max(0, ncGrossAsset - ncTotalPrincipal);
 
-                // 환급금 재투자 계좌 최종 세금 정산
+                // 환급금 재투자 계좌 최종 세금 정산 (해외ETF 250만원 기본공제 후 22%)
                 const ncSideProfitFinal = Math.max(0, penSideBalance - penSidePrincipal);
-                const ncSideCapTax = ncSideProfitFinal * 0.22;
+                const ncSideCapTax = Math.max(0, ncSideProfitFinal - 2500000) * 0.22;
                 const ncSideNet = penSideBalance - ncSideCapTax;
 
-                // General
+                // General (해외ETF 250만원 기본공제 후 22%)
                 const ncGenProfitFinal = Math.max(0, genBalance - genPrincipal);
-                const ncGenCapTax = ncGenProfitFinal * 0.22;
+                const ncGenCapTax = Math.max(0, ncGenProfitFinal - 2500000) * 0.22;
                 const ncGenNet = genBalance - ncGenCapTax;
                 const ncGenTrueTax = ncGrossAsset - ncGenNet;
                 const ncGenRate = ncGrossAsset > 0 ? (ncGenTrueTax / ncGrossAsset) * 100 : 0;
@@ -1388,6 +1395,8 @@
                 const best = nets[0];
                 const worst = nets[nets.length - 1];
                 verdictEl.innerHTML = `✅ <strong>${best.name}</strong>이(가) 가장 유리, <strong>${worst.name}</strong> 대비 <strong>${formatKRW(best.val - worst.val)}</strong> 더 수령`;
+                verdictEl.style.background = '#dcfce7';
+                verdictEl.style.color = '#166534';
             } else {
                 document.getElementById('ncCard').style.display = 'none';
             }
